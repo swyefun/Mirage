@@ -150,7 +150,7 @@ final class KittyRenderer: ScreenRenderer, @unchecked Sendable {
     private func fill(_ frame: VNCClient.Frame, _ l: Layout) {
         let (vw, vh) = (frame.width, frame.height)
         let ox = (l.canvasWidth - vw) / 2, oy = (l.canvasHeight - vh) / 2
-        frame.pixels.withUnsafeBytes { src in
+        frame.pixels.withUnsafeBytes { (src: UnsafeRawBufferPointer) in
             mask.withUnsafeBufferPointer { m in
                 canvas.withUnsafeMutableBufferPointer { dst in
                     for y in 0..<vh {
@@ -307,7 +307,7 @@ final class BlockRenderer: ScreenRenderer, @unchecked Sendable {
         let (vw, vh) = (frame.width, frame.height)
         let (w, h) = (l.columns, l.halfRows)
         if pixels.count != w * h { pixels = [UInt32](repeating: Self.clear, count: w * h) }
-        frame.pixels.withUnsafeBytes { src in
+        frame.pixels.withUnsafeBytes { (src: UnsafeRawBufferPointer) in
             mask.withUnsafeBufferPointer { m in
                 pixels.withUnsafeMutableBufferPointer { dst in
                     for j in 0..<h {
