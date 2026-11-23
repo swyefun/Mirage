@@ -77,6 +77,15 @@ jobs:
             Copy-Item -Recurse -Force $src (Join-Path $mods $name)
           }
           Copy-Item -Recurse -Force (Join-Path (Resolve-Path .).Path 'External/AstroBox/plugins/btclassic-spp') (Join-Path $plugs 'btclassic-spp')
+          # frontbridge declares tauri-runtime-cef as a cfg(target_os="linux")
+          # path dependency; Cargo still resolves it on Windows even though it
+          # is never compiled. The real crate is private, so drop a minimal
+          # placeholder that only satisfies path resolution.
+          $vendor = Join-Path (Join-Path $root 'src-tauri') 'vendor/tauri-runtime-cef'
+          New-Item -ItemType Directory -Force -Path $vendor | Out-Null
+          @("[package]", "name = `"tauri-runtime-cef`"", "version = `"0.1.0`"", "edition = `"2021`"", "", "[lib]", "path = `"src/lib.rs`"") | Set-Content (Join-Path $vendor 'Cargo.toml')
+          New-Item -ItemType Directory -Force -Path (Join-Path $vendor 'src') | Out-Null
+          Set-Content (Join-Path $vendor 'src/lib.rs') ''
           Get-ChildItem $mods | Select-Object Name
       - name: Companion core
         run: Scripts/build-companion-core.ps1
