@@ -61,6 +61,23 @@ jobs:
           tag: 6.3-RELEASE
       - name: Swift version
         run: swift --version
+      - name: Assemble AstroBox-NG worktree for the companion core
+        run: |
+          # AstroBoxBridge/Cargo.toml resolves path deps against
+          # ../../AstroBox-NG/src-tauri/{modules,plugins}. Upstream CI only
+          # checks out standalone modules under External/AstroBox, so mirror
+          # them into the layout the bridge expects.
+          $root = Join-Path (Resolve-Path ..).Path 'AstroBox-NG'
+          $mods = Join-Path $root 'src-tauri/modules'
+          $plugs = Join-Path $root 'src-tauri/plugins'
+          New-Item -ItemType Directory -Force -Path $mods | Out-Null
+          New-Item -ItemType Directory -Force -Path $plugs | Out-Null
+          foreach ($name in @('core','bluetooth','frontbridge','pb','vivo_msgpack')) {
+            $src = Join-Path (Resolve-Path .).Path "External/AstroBox/modules/$name"
+            Copy-Item -Recurse -Force $src (Join-Path $mods $name)
+          }
+          Copy-Item -Recurse -Force (Join-Path (Resolve-Path .).Path 'External/AstroBox/plugins/btclassic-spp') (Join-Path $plugs 'btclassic-spp')
+          Get-ChildItem $mods | Select-Object Name
       - name: Companion core
         run: Scripts/build-companion-core.ps1
       - name: MirageKit tests
